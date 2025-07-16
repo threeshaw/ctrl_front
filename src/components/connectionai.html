@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue3 可拖动矩形连线系统</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    
+    button {
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      background: linear-gradient(to right, #4A00E0, #8E2DE2);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .status {
+      text-align: center;
+      font-size: 1.2rem;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    
+    .canvas-container {
+      position: relative;
+      height: 600px;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      background: rgba(10, 15, 40, 0.6);
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .rectangle {
+      position: absolute;
+      width: 120px;
+      height: 80px;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      border-radius: 8px;
+      cursor: move;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .rectangle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    }
+    
+    .rectangle.dragging {
+      cursor: grabbing;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+    }
+    
+    .port {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffcc00;
+      cursor: crosshair;
+      position: relative;
+      z-index: 5;
+      border: 2px solid white;
+      transition: all 0.2s;
+    }
+    
+    .port:hover {
+      transform: scale(1.3);
+      background: #ff6b00;
+    }
+    
+    .port.left {
+      margin-left: -8px;
+    }
+    
+    .port.right {
+      margin-right: -8px;
+    }
+    
+    .port.active {
+      background: #ff0000;
+      box-shadow: 0 0 15px #ff0000;
+    }
+    
+    .connector {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .connection-line {
+      stroke: #ffcc00;
+      stroke-width: 3;
+      marker-end: url(#arrowhead);
+    }
+    
+    .instructions {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    
+    .instructions h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    
+    .instructions ul {
+      list-style-type: none;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .instructions li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+    }
+    
+    .instructions li:last-child {
+      border-bottom: none;
+    }
+    
+    .instructions li::before {
+      content: "•";
+      color: #ffcc00;
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    
+    .connection-count {
+      font-weight: bold;
+      color: #ffcc00;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    @media (max-width: 768px) {
+      .canvas-container {
+        height: 500px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <header>
+      <h1>Vue3 可拖动矩形连线系统</h1>
+      <p class="subtitle">点击"添加矩形"按钮在画布上创建矩形，最多可添加7个矩形。每个矩形两端有黄色端口，点击一个端口再点击另一个端口可连接它们</p>
+    </header>
+    
+    <div class="app-container">
+      <div class="controls">
+        <button @click="addRectangle" :disabled="rectangles.length >= 7">
+          添加矩形 ({{ rectangles.length }}/7)
+        </button>
+        <button @click="clearAll">清除所有</button>
+        <button @click="clearConnections">清除连接</button>
+      </div>
+      
+      <div class="status">
+        <p>当前连接数: <span class="connection-count">{{ connections.length }}</span></p>
+        <p v-if="currentConnectionStart">正在连接: 请选择目标端口</p>
+        <p v-else>提示: 点击矩形端口开始连接</p>
+      </div>
+      
+      <div class="canvas-container" ref="canvas" @mousemove="handleMouseMove" @mouseup="stopDrag">
+        <svg class="connector">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#ffcc00"/>
+            </marker>
+          </defs>
+          <line 
+            v-for="(conn, index) in connections" 
+            :key="index"
+            class="connection-line"
+            :x1="conn.start.x" 
+            :y1="conn.start.y"
+            :x2="conn.end.x" 
+            :y2="conn.end.y"
+          />
+          <line 
+            v-if="tempConnection"
+            class="connection-line"
+            :x1="tempConnection.start.x" 
+            :y1="tempConnection.start.y"
+            :x2="tempConnection.end.x" 
+            :y2="tempConnection.end.y"
+          />
+        </svg>
+        
+        <div 
+          v-for="rect in rectangles" 
+          :key="rect.id"
+          class="rectangle" 
+          :class="{ dragging: rect.dragging }"
+          :style="{ left: rect.x + 'px', top: rect.y + 'px' }"
+          @mousedown="startDrag(rect, $event)"
+        >
+          <div 
+            class="port left" 
+            :class="{ active: currentConnectionStart && currentConnectionStart.rectId === rect.id && currentConnectionStart.side === 'left' }"
+            @mousedown.stop="startConnection(rect, 'left', $event)"
+          ></div>
+          <div 
+            class="port right" 
+            :class="{ active: currentConnectionStart && currentConnectionStart.rectId === rect.id && currentConnectionStart.side === 'right' }"
+            @mousedown.stop="startConnection(rect, 'right', $event)"
+          ></div>
+        </div>
+      </div>
+      
+      <div class="instructions">
+        <h2>使用说明</h2>
+        <ul>
+          <li><strong>添加矩形</strong> - 点击"添加矩形"按钮在画布上创建新矩形（最多7个）</li>
+          <li><strong>移动矩形</strong> - 点击并拖动矩形主体进行移动</li>
+          <li><strong>创建连接</strong> - 点击一个端口（黄色圆点），然后点击另一个端口创建连接</li>
+          <li><strong>清除连接</strong> - 点击"清除连接"按钮删除所有连接线</li>
+          <li><strong>清除所有</strong> - 点击"清除所有"按钮删除所有矩形和连接</li>
+          <li><strong>端口限制</strong> - 每个端口只能连接一次，矩形最多存在7个</li>
+        </ul>
+      </div>
+    </div>
+    
+    <footer>
+      <p>基于 Vue3 实现的可拖动矩形连线系统 | 每个矩形包含两个可连接端口</p>
+    </footer>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+    
+    createApp({
+      setup() {
+        // 矩形数据
+        const rectangles = ref([]);
+        // 连接数据
+        const connections = ref([]);
+        // 当前拖动的矩形
+        const draggingRect = ref(null);
+        // 拖动偏移量
+        const dragOffset = ref({ x: 0, y: 0 });
+        // 临时连接（正在创建中的连接）
+        const tempConnection = ref(null);
+        // 当前连接的起点
+        const currentConnectionStart = ref(null);
+        // 画布引用
+        const canvas = ref(null);
+        
+        // 添加新矩形
+        const addRectangle = () => {
+          if (rectangles.value.length >= 7) return;
+          
+          const newRect = {
+            id: Date.now(),
+            x: 100 + Math.random() * 500,
+            y: 100 + Math.random() * 300,
+            width: 120,
+            height: 80,
+            dragging: false
+          };
+          
+          rectangles.value.push(newRect);
+        };
+        
+        // 开始拖动矩形
+        const startDrag = (rect, event) => {
+          rect.dragging = true;
+          draggingRect.value = rect;
+          
+          // 计算鼠标在矩形内的偏移量
+          dragOffset.value = {
+            x: event.clientX - rect.x,
+            y: event.clientY - rect.y
+          };
+        };
+        
+        // 处理鼠标移动（拖动）
+        const handleMouseMove = (event) => {
+          if (draggingRect.value) {
+            const rect = draggingRect.value;
+            rect.x = event.clientX - dragOffset.value.x;
+            rect.y = event.clientY - dragOffset.value.y;
+            
+            // 限制在画布范围内
+            const canvasRect = canvas.value.getBoundingClientRect();
+            rect.x = Math.max(0, Math.min(canvasRect.width - rect.width, rect.x));
+            rect.y = Math.max(0, Math.min(canvasRect.height - rect.height, rect.y));
+            
+            // 更新连接位置
+            updateConnections();
+          }
+          
+          // 更新临时连接（如果正在创建）
+          if (currentConnectionStart.value && !draggingRect.value) {
+            updateTempConnection(event);
+          }
+        };
+        
+        // 停止拖动
+        const stopDrag = () => {
+          if (draggingRect.value) {
+            draggingRect.value.dragging = false;
+            draggingRect.value = null;
+          }
+        };
+        
+        // 开始连接
+        const startConnection = (rect, side, event) => {
+          event.stopPropagation();
+          
+          // 如果当前没有连接起点，设置起点
+          if (!currentConnectionStart.value) {
+            currentConnectionStart.value = {
+              rectId: rect.id,
+              side: side,
+              x: rect.x + (side === 'left' ? 0 : rect.width),
+              y: rect.y + rect.height / 2
+            };
+            
+            // 初始化临时连接
+            tempConnection.value = {
+              start: { ...currentConnectionStart.value },
+              end: { x: event.clientX, y: event.clientY }
+            };
+          } 
+          // 如果已经有起点，则完成连接
+          else {
+            // 不能连接到同一个矩形
+            if (currentConnectionStart.value.rectId === rect.id) {
+              currentConnectionStart.value = null;
+              tempConnection.value = null;
+              return;
+            }
+            
+            // 检查是否已存在相同连接
+            const existingConnection = connections.value.find(conn => 
+              (conn.start.rectId === currentConnectionStart.value.rectId && 
+               conn.end.rectId === rect.id) ||
+              (conn.start.rectId === rect.id && 
+               conn.end.rectId === currentConnectionStart.value.rectId)
+            );
+            
+            if (!existingConnection) {
+              const endPoint = {
+                rectId: rect.id,
+                side: side,
+                x: rect.x + (side === 'left' ? 0 : rect.width),
+                y: rect.y + rect.height / 2
+              };
+              
+              connections.value.push({
+                start: { ...currentConnectionStart.value },
+                end: endPoint
+              });
+            }
+            
+            // 重置连接状态
+            currentConnectionStart.value = null;
+            tempConnection.value = null;
+          }
+        };
+        
+        // 更新临时连接
+        const updateTempConnection = (event) => {
+            const canvasBounds = canvas.value.getBoundingClientRect();
+          if (tempConnection.value) {
+            tempConnection.value.end = {
+              x: event.clientX- canvasBounds.left,
+              y: event.clientY- canvasBounds.top
+            };
+          }
+        };
+        
+        // 更新所有连接的位置
+        const updateConnections = () => {
+          connections.value = connections.value.map(conn => {
+            const startRect = rectangles.value.find(r => r.id === conn.start.rectId);
+            const endRect = rectangles.value.find(r => r.id === conn.end.rectId);
+            
+            if (startRect && endRect) {
+              return {
+                start: {
+                  ...conn.start,
+                  x: startRect.x + (conn.start.side === 'left' ? 0 : startRect.width),
+                  y: startRect.y + startRect.height / 2
+                },
+                end: {
+                  ...conn.end,
+                  x: endRect.x + (conn.end.side === 'left' ? 0 : endRect.width),
+                  y: endRect.y + endRect.height / 2
+                }
+              };
+            }
+            return conn;
+          });
+        };
+        
+        // 清除所有连接
+        const clearConnections = () => {
+          connections.value = [];
+          currentConnectionStart.value = null;
+          tempConnection.value = null;
+        };
+        
+        // 清除所有
+        const clearAll = () => {
+          rectangles.value = [];
+          clearConnections();
+        };
+        
+        // 初始化
+        onMounted(() => {
+          // 添加初始矩形
+          addRectangle();
+          addRectangle();
+        });
+        
+        return {
+          rectangles,
+          connections,
+          tempConnection,
+          currentConnectionStart,
+          canvas,
+          addRectangle,
+          startDrag,
+          handleMouseMove,
+          stopDrag,
+          startConnection,
+          clearConnections,
+          clearAll
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
