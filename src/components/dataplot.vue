@@ -1,84 +1,82 @@
 <template>
-  <div class="container">
-    <canvas ref="chartCanvas"></canvas>
-    <div class="slider-container">
-      <div class="slider-label">
-        <span>显示范围</span>
-        <span>{{ rangeLabel }}</span>
-      </div>
-      <div class="controls">
-        <div class="control">
-          <input
-            type="file"
-            ref="fileInput"
-            @change="handleFileChange"
-            accept=".xlsx, .xls ,.csv"
-            style="display: none"
-          />
-          <button @click="triggerFileInput">导入Excel</button>
-          <button @click="plotChart" class="btn-primary">绘制图表</button>
+  <div id="app">
+    <div class="container">
+      <div class="content">
+        <div class="chart-container">
+          <div class="chart-header">
+            <div class="chart-title">数据趋势分析</div>
+            <div class="zoom-info">缩放比例: {{ zoomLevel.toFixed(2) }}x</div>
+          </div>
+          <canvas ref="chartCanvas"></canvas>
+          <div class="slider-container">
+            <div class="slider-label">
+              <span>显示范围</span>
+              <span>{{ rangeLabel }}</span>
+            </div>
+            <input
+              ref="datarange"
+              type="range"
+              :min="0"
+              :max="20"
+              v-model="sliderValue"
+              class="range-slider"
+            />
+          </div>
         </div>
 
-        <div class="control-group">
-          <div class="btn-group">
-            <button @click="zoomIn" class="btn-zoom">放大 (+)</button>
-            <button @click="zoomOut" class="btn-zoom">缩小 (-)</button>
+        <div class="controls">
+          <div class="control-group">
+            <h3>数据输入</h3>
+            <input
+              type="text"
+              v-model="inputData"
+              class="data-input"
+              placeholder="输入数据点，用逗号分隔 (例如: 12, 18, 22, 15, 30)"
+            />
+            <button @click="plotChart" class="btn-primary">导入数据</button>
           </div>
-          <button @click="resetView" class="btn-reset">重置视图</button>
+
+          <div class="control-group">
+            <h3>缩放控制</h3>
+            <div class="btn-group">
+              <button @click="zoomIn" class="btn-zoom">放大 (+)</button>
+              <button @click="zoomOut" class="btn-zoom">缩小 (-)</button>
+            </div>
+            <button @click="resetView" class="btn-reset">重置视图</button>
+          </div>
+
+          <div class="instructions">
+            <h4>使用说明：</h4>
+            <ul>
+              <li>在输入框中输入数字，用逗号分隔</li>
+              <li>点击"绘制图表"按钮生成折线图</li>
+              <li>使用"放大"和"缩小"按钮调整图表显示范围</li>
+              <li>使用底部滑块浏览不同数据段</li>
+              <li>点击"重置视图"恢复原始视图</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
-import * as XLSX from 'xlsx' // 响应式数据
+import { createApp, ref, reactive, onMounted, watch } from 'vue'
+
+// 响应式数据
 const chartCanvas = ref(null)
 const inputData = ref('')
 const zoomLevel = ref(1.0)
 const startIndex = ref(0)
 const sliderValue = ref(0)
-const sliderMax = ref(0)
-const rangeLabel = ref('0 - 100')
-const fileInput = ref(null)
-// 触发文件选择
-const triggerFileInput = () => {
-  fileInput.value.click()
-}
+const rangeLabel = ref('0 - 20')
+const datarange = ref('')
+
+// 图表数据
 const data = reactive({
   values: [12, 19, 15, 22, 17, 25, 19, 30, 27, 35, 31, 40, 38, 45, 42, 48, 45, 50, 47, 42],
   visible: [],
 })
-// 处理文件选择
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    try {
-      const data = new Uint8Array(event.target.result)
-      const workbook = XLSX.read(data, { type: 'array' })
-
-      // 获取第一个工作表
-      const firstSheetName = workbook.SheetNames[0]
-      const worksheet = workbook.Sheets[firstSheetName]
-
-      // 转换为JSON
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-      console.log(jsonData[1][2])
-      data.values = jsonData.slice(0, 100)
-      // 处理数据：取前5行5列
-      processExcelData(jsonData)
-    } catch (error) {
-      console.error('Excel解析错误:', error)
-      alert('文件解析失败，请检查文件格式')
-    }
-  }
-  reader.readAsArrayBuffer(file)
-}
-// 图表数据
 
 // 图表配置
 const padding = reactive({ top: 40, right: 30, bottom: 50, left: 60 })
@@ -119,7 +117,7 @@ const drawChart = () => {
   )
   const endIndex = Math.min(startIndex.value + visiblePoints, data.values.length)
   data.visible = data.values.slice(startIndex.value, endIndex)
-
+  console.log(endIndex)
   // 计算数据范围
   const maxValue = Math.max(...data.visible) * 1.1
   const minValue = Math.min(0, Math.min(...data.visible) * 0.9)
@@ -164,7 +162,7 @@ const drawChart = () => {
     ctx.textAlign = 'center'
     const dataIndex =
       startIndex.value + Math.round((i * (data.visible.length - 1)) / (xGridLines - 1))
-    ctx.fillText(dataIndex.toString(), x, padding.top + chartHeight + 100)
+    ctx.fillText(dataIndex.toString(), x, padding.top + chartHeight + 20)
   }
 
   ctx.stroke()
@@ -191,7 +189,7 @@ const drawChart = () => {
   ctx.fillText('数据点索引', chartCanvas.value.width / 2, chartCanvas.value.height - 15)
 
   ctx.save()
-  ctx.translate(100, chartCanvas.value.height / 2)
+  ctx.translate(20, chartCanvas.value.height / 2)
   ctx.rotate(-Math.PI / 2)
   ctx.textAlign = 'center'
   ctx.fillText('数值', 0, 0)
@@ -238,16 +236,21 @@ const drawChart = () => {
   ctx.fillText(
     `数据趋势分析 (${startIndex.value}-${endIndex}/${data.values.length} 个数据点)`,
     chartCanvas.value.width / 2,
-    100,
+    20,
   )
 
   // 更新范围标签
   rangeLabel.value = `${startIndex.value} - ${endIndex}`
 
   // 更新滑块最大值
-  sliderMax.value = Math.max(0, data.values.length - data.visible.length)
+  updateRangeSlider()
 }
-
+function updateRangeSlider() {
+  datarange.min = 0
+  datarange.max = Math.max(0, data.values.length - data.visible.length)
+  console.log(datarange.max)
+  datarange.value = startIndex
+}
 // 绘制图表按钮
 const plotChart = () => {
   if (inputData.value) {
@@ -326,28 +329,200 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 body {
   background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
   min-height: 100vh;
-  display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
 }
 
 .container {
-  width: 100%;
-  max-width: 1000px;
+  width: 1000px;
   background-color: rgba(255, 255, 255, 0.93);
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+}
+
+.content {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+.chart-container {
+  width: 800;
+  position: relative;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+}
+
+.controls {
+  width: 800px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.chart-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.zoom-info {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+canvas {
+  width: 100%;
+  height: 550px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  display: block;
+}
+
+.slider-container {
+  margin-top: 15px;
+  padding: 10px 0;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.range-slider {
+  width: 100%;
+  height: 8px;
+
+  background: #dee2e6;
+  border-radius: 4px;
+  outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a6491;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a6491;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #4a6491;
+}
+
+.data-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.data-input:focus {
+  outline: none;
+  border-color: #4a6491;
+  box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.2);
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #4a6491, #2c3e50);
+  color: white;
+}
+
+.btn-zoom {
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-reset {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.instructions {
+  background-color: #d1ecf1;
+  border-left: 4px solid #0dcaf0;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+
+.instructions h4 {
+  color: #0c5460;
+  margin-bottom: 10px;
+}
+
+.instructions ul {
+  padding-left: 20px;
+  color: #0c5460;
+}
+
+.instructions li {
+  margin-bottom: 8px;
 }
 </style>

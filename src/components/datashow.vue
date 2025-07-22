@@ -99,36 +99,234 @@ const processExcelData = (jsonData) => {
 }
 </script>
 
-<style scoped>
-.excel-table {
-  border-collapse: collapse;
-  margin-top: 20px;
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
   width: 100%;
+  max-width: 1000px;
+  background-color: rgba(255, 255, 255, 0.93);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
-.excel-table th,
-.excel-table td {
-  border: 1px solid #d41111;
-  padding: 8px;
-  text-align: left;
+header {
+  background: linear-gradient(90deg, #2c3e50, #4a6491);
+  color: white;
+  padding: 20px;
+  text-align: center;
 }
 
-.excel-table {
-  background-color: #8ebc45;
-  font-weight: bold;
+.content {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+.chart-container {
+  flex: 1;
+  position: relative;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+}
+
+.controls {
+  width: 300px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.chart-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.zoom-info {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+canvas {
+  width: 100%;
+  height: 350px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  display: block;
+}
+
+.slider-container {
+  margin-top: 15px;
+  padding: 10px 0;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.range-slider {
+  width: 100%;
+  height: 8px;
+  background: #dee2e6;
+  border-radius: 4px;
+  outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a6491;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a6491;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #4a6491;
+}
+
+.data-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.data-input:focus {
+  outline: none;
+  border-color: #4a6491;
+  box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.2);
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 button {
-  padding: 10px 15px;
-  background-color: #4caf50;
-  color: white;
+  flex: 1;
+  padding: 12px 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #4a6491, #2c3e50);
+  color: white;
+}
+
+.btn-zoom {
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-reset {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+  color: white;
 }
 
 button:hover {
-  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.instructions {
+  background-color: #d1ecf1;
+  border-left: 4px solid #0dcaf0;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+
+.instructions h4 {
+  color: #0c5460;
+  margin-bottom: 10px;
+}
+
+.instructions ul {
+  padding-left: 20px;
+  color: #0c5460;
+}
+
+.instructions li {
+  margin-bottom: 8px;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #2c3e50;
+  color: white;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+  }
+
+  .controls {
+    width: 100%;
+  }
 }
 </style>
