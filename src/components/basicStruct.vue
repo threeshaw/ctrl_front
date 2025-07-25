@@ -1,82 +1,145 @@
 <template>
-  <div class="vscode-top-bar">
-    <div class="menu-bar">
-      <div class="menu-item">文件</div>
-      <div class="menu-item">编辑</div>
-      <div class="menu-item">选择</div>
-      <div class="menu-item">查看</div>
-      <div class="menu-item">运行</div>
-      <div class="menu-item">终端</div>
-      <div class="menu-item">帮助</div>
-    </div>
-    <div class="window-title">index.html</div>
-    <div class="window-controls">
-      <div class="window-control minimize"></div>
-      <div class="window-control maximize"></div>
-      <div class="window-control close"></div>
-    </div>
-  </div>
-
-  <div class="container">
-    <!-- 侧边栏 -->
-    <div class="sidebar">
-      <p>数据输入</p>
-      <div class="datalist">
-        <ul class="input1"></ul>
-        <ul class="input2"></ul>
+  <body>
+    <div class="vscode-top-bar">
+      <div class="menu-bar">
+        <div class="menu-item" @click="showlist">文件</div>
+        <div class="menu-item">编辑</div>
+        <div class="menu-item">选择</div>
+        <div class="menu-item">查看</div>
+        <div class="menu-item">运行</div>
+        <div class="menu-item">终端</div>
+        <div class="menu-item">帮助</div>
       </div>
-      <div class="modellist">模型选择</div>
+      <div class="click-listf" id="clickfile" v-show="dispfile" @click="triggerFileInput">
+        <div class="list-item">新建</div>
+        <div class="list-item">保存</div>
+        <div class="list-item">打开</div>
+        <div class="list-item">另存为</div>
+      </div>
+      <!-- <div class="window-title">index.html</div> -->
+      <!-- <div class="window-controls">
+        <div class="window-control minimize"></div>
+        <div class="window-control maximize"></div>
+        <div class="window-control close"></div>
+      </div> -->
     </div>
 
-    <!-- 编辑器区域 -->
-    <div class="editor-container">
-      <div class="tabs"></div>
+    <div class="container">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <p>
+          数据输入
+          <input
+            type="file"
+            ref="fileInput"
+            @change="handleFileChange"
+            accept=".xlsx, .xls ,.csv"
+            style="display: none"
+          />
+          <button @click="triggerFileInput">导入Excel</button>
+        </p>
+        <div class="datalist">
+          <ul class="input1" v-for="item in datalist">
+            {{
+              item
+            }}
+          </ul>
+        </div>
+        <div class="modellist">模型选择</div>
+      </div>
 
-      <!-- 点击时显示的列表 -->
-      <div class="click-list" id="click-list">
-        <div class="list-item"><span class="icon">📄</span> 新建文件</div>
-        <div class="list-item"><span class="icon">📁</span> 新建文件夹</div>
-        <div class="list-item"><span class="icon">🔍</span> 查找</div>
-        <div class="list-item"><span class="icon">✂️</span> 剪切</div>
-        <div class="list-item"><span class="icon">📋</span> 复制</div>
-        <div class="list-item"><span class="icon">📋</span> 粘贴</div>
-        <div class="list-item"><span class="icon">🔄</span> 重新加载</div>
-        <div class="list-item"><span class="icon">⚙️</span> 设置</div>
+      <!-- 编辑器区域 -->
+      <div class="editor-container">
+        <div class="tabs">
+          <button class="run">运行</button>
+        </div>
+        <canvas class="mainCanvas"></canvas>
+        <!-- 点击时显示的列表 -->
+        <!-- <div class="click-list" id="click-list">
+          <div class="list-item"><span class="icon">📄</span> 新建文件</div>
+          <div class="list-item"><span class="icon">📁</span> 新建文件夹</div>
+          <div class="list-item"><span class="icon">🔍</span> 查找</div>
+          <div class="list-item"><span class="icon">✂️</span> 剪切</div>
+          <div class="list-item"><span class="icon">📋</span> 复制</div>
+          <div class="list-item"><span class="icon">📋</span> 粘贴</div>
+          <div class="list-item"><span class="icon">🔄</span> 重新加载</div>
+          <div class="list-item"><span class="icon">⚙️</span> 设置</div>
+        </div> -->
       </div>
     </div>
-  </div>
 
-  <!-- 底部控制台 -->
-  <div class="console-container">
-    <div class="console-header">
-      <div class="tab active">问题</div>
-      <div class="tab">输出</div>
-      <div class="tab">调试控制台</div>
-      <div class="tab">终端</div>
+    <!-- 底部控制台 -->
+    <div class="console-container">
+      <div class="console-header">
+        <div class="tab">输出</div>
+      </div>
+      <div class="console-content"></div>
     </div>
-    <div class="console-content"></div>
-  </div>
 
-  <!-- 状态栏 -->
-  <div class="status-bar">
-    <div class="status-item">
-      <span>main</span>
-    </div>
-    <div class="status-item">
-      <span>UTF-8</span>
-    </div>
-    <div class="status-item">
-      <span>HTML</span>
-    </div>
-    <div class="status-item">
-      <span>行 24, 列 12</span>
-    </div>
-    <div class="status-item">
-      <span>空格: 4</span>
-    </div>
-  </div>
+    <!-- 状态栏 
+    <div class="status-bar">
+      <div class="status-item">
+        <span>main</span>
+      </div>
+      <div class="status-item">
+        <span>UTF-8</span>
+      </div>
+      <div class="status-item">
+        <span>HTML</span>
+      </div>
+      <div class="status-item">
+        <span>行 24, 列 12</span>
+      </div>
+      <div class="status-item">
+        <span>空格: 4</span>
+      </div>
+    </div>-->
+  </body>
 </template>
-<script></script>
+<script setup>
+import { ref } from 'vue'
+import * as XLSX from 'xlsx'
+
+let dispfile = ref(false)
+const datalist = ref([])
+const fileInput = ref(null)
+
+const showlist = () => {
+  dispfile.value = !dispfile.value
+  console.log(dispfile.value)
+}
+
+const triggerFileInput = () => {
+  fileInput.value.click()
+}
+
+// 处理文件选择
+const handleFileChange = (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (event) => {
+    try {
+      const data = new Uint8Array(event.target.result)
+      const workbook = XLSX.read(data, { type: 'array' })
+
+      // 获取第一个工作表
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+      datalist.value.push('输入' + firstSheetName)
+      // 转换为JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      console.log(datalist)
+      // 处理数据：取前5行5列
+    } catch (error) {
+      console.error('Excel解析错误:', error)
+      alert('文件解析失败，请检查文件格式')
+    }
+  }
+  reader.readAsArrayBuffer(file)
+}
+</script>
 <style>
 * {
   margin: 0;
@@ -86,8 +149,7 @@
 }
 
 body {
-  background-color: #1e1e1e;
-  color: #d4d4d4;
+  background: #faf9f9;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -96,18 +158,17 @@ body {
 
 /* VS Code顶部控制台样式 */
 .vscode-top-bar {
-  background-color: #2d2d2d;
+  background-color: #dc1010;
   height: 40px;
-  display: flex;
+  width: 1000px;
   align-items: center;
   padding: 0 15px;
   border-bottom: 1px solid #3c3c3c;
-  -webkit-app-region: drag;
 }
 
 .menu-bar {
   display: flex;
-  gap: 20px;
+
   margin-right: auto;
 }
 
@@ -124,6 +185,8 @@ body {
 }
 
 .window-controls {
+  position: relative;
+  left: 80%;
   display: flex;
   gap: 12px;
   -webkit-app-region: no-drag;
@@ -169,7 +232,7 @@ body {
 .datalist {
   width: 180px;
   height: 200px;
-  background-color: #f5e505;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -200,7 +263,19 @@ body {
   border-bottom: 1px solid #2d2d2d;
   height: 35px;
 }
-
+.run {
+  padding: 5px 10px;
+  margin-top: 5px;
+  margin-right: 10px;
+}
+.mainCanvas {
+  display: flex;
+  background-color: white;
+  border-width: 3px;
+  margin-top: 10px;
+  width: 200px;
+  height: 200px;
+}
 .tab {
   padding: 8px 15px;
   font-size: 13px;
@@ -262,20 +337,25 @@ body {
 
 /* 点击时显示的列表 */
 .click-list {
-  position: absolute;
+  position: 20%;
   background-color: #252526;
   border: 1px solid #454545;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 100;
-  display: none;
   width: 250px;
   max-height: 300px;
   overflow-y: auto;
 }
-
-.click-list.visible {
-  display: block;
+.click-listf {
+  background-color: #252526;
+  border: 1px solid #454545;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .list-item {
@@ -319,6 +399,7 @@ body {
 /* 底部控制台 */
 .console-container {
   height: 200px;
+  width: 100%;
   background-color: #1e1e1e;
   border-top: 1px solid #3c3c3c;
   display: flex;
@@ -372,7 +453,8 @@ body {
 .console-line.success {
   color: #50fa7b;
 }
-ul.input1 {
+.input1 {
   list-style-type: square;
+  color: #080000;
 }
 </style>

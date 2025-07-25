@@ -3,602 +3,368 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>响应式Canvas矩形框 | Vue3</title>
+    <title>Vue3 下拉菜单组件（优化版）</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
 
       body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
         min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
         padding: 20px;
-        color: #fff;
       }
 
       .container {
-        max-width: 900px;
-        width: 95%;
-        background: rgba(25, 25, 50, 0.85);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        padding: 25px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      header {
+        width: 100%;
+        max-width: 1200px;
         text-align: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid rgba(255, 217, 0, 0.6);
       }
 
-      h1 {
-        font-size: 2.4rem;
-        background: linear-gradient(to right, #ffd700, #00ff1e);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        margin-bottom: 8px;
+      .header {
+        margin-bottom: 40px;
+        color: white;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
 
-      .subtitle {
-        color: #aaa;
-        font-size: 1.1rem;
-        margin-top: 5px;
+      .header h1 {
+        font-size: 2.8rem;
+        margin-bottom: 15px;
       }
 
-      .content {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 25px;
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
       }
 
-      .canvas-container {
-        flex: 1;
-        min-width: 300px;
-        background: rgba(10, 10, 30, 0.7);
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .canvas-wrapper {
-        position: relative;
+      .card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        padding: 40px;
         width: 100%;
-        max-width: 600px;
+        max-width: 500px;
         margin: 0 auto;
+        transition: all 0.3s ease;
       }
 
-      canvas {
-        background: #121230;
-        border-radius: 8px;
-        display: block;
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      }
+
+      .card-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+        position: relative;
+        padding-bottom: 15px;
+      }
+
+      .card-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(to right, #3498db, #2c3e50);
+        border-radius: 2px;
+      }
+
+      .menu-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-top: 20px;
         width: 100%;
-        height: auto;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        cursor: pointer;
       }
 
-      .scale-info {
-        margin-top: 10px;
-        font-size: 0.9rem;
-        color: #ccc;
-        background: rgba(0, 0, 0, 0.3);
-        padding: 5px 10px;
-        border-radius: 4px;
-      }
-
-      .controls {
-        flex: 0 0 280px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .instructions {
-        background: rgba(30, 30, 60, 0.7);
-        padding: 18px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      .instructions h2 {
-        color: #ffd700;
-        margin-bottom: 12px;
-        font-size: 1.4rem;
-      }
-
-      .instructions ul {
-        padding-left: 18px;
-      }
-
-      .instructions li {
-        margin-bottom: 8px;
-        line-height: 1.5;
-        font-size: 0.95rem;
-      }
-
-      .stats {
-        background: rgba(30, 30, 60, 0.7);
-        padding: 18px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      .stats h2 {
-        color: #ffd700;
-        margin-bottom: 12px;
-        font-size: 1.4rem;
-      }
-
-      .stats p {
-        margin: 8px 0;
-        font-size: 1rem;
-      }
-
-      .stat-value {
-        color: #ffd700;
-        font-weight: bold;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 10px;
-      }
-
-      button {
-        flex: 1;
-        min-width: 110px;
-        padding: 10px 16px;
+      .menu-button {
+        padding: 14px 36px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
         border: none;
         border-radius: 8px;
-        background: linear-gradient(to right, #ffa500, #ff8c00);
-        color: #1a1a2e;
-        font-weight: bold;
         cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: 600;
         transition: all 0.3s ease;
-        font-size: 0.95rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        box-shadow:
+          0 4px 6px rgba(50, 50, 93, 0.11),
+          0 1px 3px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 280px;
       }
 
-      button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-        background: linear-gradient(to right, #ffd700, #ffa500);
+      .menu-button:hover {
+        background: linear-gradient(135deg, #2980b9, #2573a7);
+        transform: translateY(-2px);
+        box-shadow:
+          0 7px 14px rgba(50, 50, 93, 0.1),
+          0 3px 6px rgba(0, 0, 0, 0.08);
       }
 
-      button:active {
+      .menu-button:active {
         transform: translateY(1px);
       }
 
-      .reset-btn {
-        background: linear-gradient(to right, #3498db, #2980b9);
-      }
-
-      .footer {
-        text-align: center;
-        margin-top: 25px;
-        padding-top: 15px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: #aaa;
-        font-size: 0.85rem;
-      }
-
-      .responsive-label {
+      .menu-list {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        background: #27ae60;
+        top: calc(100% + 5px);
+        left: 0;
+        width: 100%;
+        max-width: 280px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        list-style: none;
+        z-index: 100;
+        overflow: hidden;
+        transform-origin: top center;
+      }
+
+      .menu-list li {
+        padding: 14px 20px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #2c3e50;
+        border-bottom: 1px solid #f1f2f6;
+      }
+
+      .menu-list li:last-child {
+        border-bottom: none;
+      }
+
+      .menu-list li:hover {
+        background: #f8f9fa;
+        padding-left: 25px;
+      }
+
+      .menu-list li::before {
+        content: '•';
+        color: #3498db;
+        margin-right: 12px;
+        font-size: 1.4rem;
+      }
+
+      .menu-list li:first-child::before {
+        color: #2ecc71;
+      }
+      .menu-list li:nth-child(2)::before {
+        color: #3498db;
+      }
+      .menu-list li:last-child::before {
+        color: #9b59b6;
+      }
+
+      /* 连接区域 - 解决间隙问题 */
+      .menu-connector {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        height: 5px; /* 连接按钮和菜单的间隙 */
+        z-index: 101;
+        pointer-events: none;
+      }
+
+      .fade-enter-active,
+      .fade-leave-active {
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+
+      .fade-enter-from,
+      .fade-leave-to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      .instructions {
+        margin-top: 40px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 20px;
         color: white;
-        padding: 5px 10px;
-        border-radius: 5px;
+        text-align: left;
+      }
+
+      .instructions h3 {
+        margin-bottom: 15px;
+        font-size: 1.4rem;
+        text-align: center;
+      }
+
+      .instructions ul {
+        padding-left: 25px;
+      }
+
+      .instructions li {
+        margin-bottom: 10px;
+        line-height: 1.6;
+      }
+
+      .instructions code {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+
+      .feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .feature::before {
+        content: '✓';
+        color: #2ecc71;
         font-weight: bold;
-        animation: pulse 1.5s infinite;
+        margin-right: 10px;
       }
 
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      @media (max-width: 768px) {
-        .content {
-          flex-direction: column;
+      @media (max-width: 600px) {
+        .card {
+          padding: 25px;
         }
 
-        .controls {
-          flex: 1;
-          width: 100%;
-        }
-
-        h1 {
-          font-size: 2rem;
-        }
-
-        .container {
-          padding: 20px 15px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        h1 {
-          font-size: 1.8rem;
-        }
-
-        .subtitle {
-          font-size: 1rem;
-        }
-
-        button {
-          min-width: 100%;
+        .header h1 {
+          font-size: 2.2rem;
         }
       }
     </style>
   </head>
   <body>
-    <div id="app">
-      <div class="container">
-        <header>
-          <h1>响应式Canvas矩形框</h1>
-          <p class="subtitle">点击变色 · 拖动移动 · 自动缩放 · Vue3实现</p>
-          <div class="responsive-label">响应式设计</div>
-        </header>
+    <div id="app" class="container">
+      <div class="header">
+        <h1>Vue3 下拉菜单组件（优化版）</h1>
+        <p>点击按钮显示菜单，鼠标离开菜单区域时自动隐藏</p>
+      </div>
 
-        <div class="content">
-          <div class="canvas-container">
-            <div class="canvas-wrapper">
-              <canvas ref="canvas" :width="logicalWidth" :height="logicalHeight"></canvas>
-            </div>
-            <div class="scale-info">
-              缩放比例: {{ scaleRatio.toFixed(2) }} | 逻辑尺寸: {{ logicalWidth }}×{{ logicalHeight
-              }} | 显示尺寸: {{ displayWidth }}×{{ displayHeight }}
-            </div>
-          </div>
+      <div class="card">
+        <h2 class="card-title">文件操作菜单</h2>
 
-          <div class="controls">
-            <div class="instructions">
-              <h2>操作指南</h2>
-              <ul>
-                <li><strong>点击矩形</strong> - 在黄色和蓝色之间切换颜色</li>
-                <li><strong>鼠标左键拖动</strong> - 按住矩形并移动鼠标来拖动它</li>
-                <li><strong>悬停效果</strong> - 鼠标悬停在矩形上时会显示轮廓</li>
-                <li><strong>拖动反馈</strong> - 拖动时矩形会显示阴影和半透明效果</li>
-                <li><strong>响应式设计</strong> - 矩形会随着画布缩放而等比例变化</li>
-              </ul>
-            </div>
+        <div class="menu-wrapper">
+          <button class="menu-button" @mouseenter="handleButtonEnter" @click="toggleMenu">
+            文件操作
+          </button>
 
-            <div class="stats">
-              <h2>矩形状态</h2>
-              <p>逻辑位置: <span class="stat-value">({{ rect.x }}, {{ rect.y }})</span></p>
-              <p>
-                显示位置:
-                <span class="stat-value"
-                  >({{ displayRectX.toFixed(1) }}, {{ displayRectY.toFixed(1) }})</span
-                >
-              </p>
-              <p>当前颜色: <span class="stat-value">{{ rect.colorName }}</span></p>
-              <p>逻辑尺寸: <span class="stat-value">{{ rect.width }} × {{ rect.height }}</span></p>
-              <p>
-                显示尺寸:
-                <span class="stat-value"
-                  >{{ displayRectWidth.toFixed(1) }} × {{ displayRectHeight.toFixed(1) }}</span
-                >
-              </p>
-              <p>状态: <span class="stat-value">{{ isDragging ? '正在拖动' : '静止' }}</span></p>
-            </div>
+          <!-- 连接区域（解决按钮和菜单之间的间隙问题） -->
+          <div class="menu-connector" v-show="menuVisible"></div>
 
-            <div class="actions">
-              <button @click="resetPosition">重置位置</button>
-              <button class="reset-btn" @click="resetAll">重置全部</button>
-            </div>
-          </div>
+          <transition name="fade">
+            <ul
+              v-show="menuVisible"
+              class="menu-list"
+              @mouseenter="handleMenuEnter"
+              @mouseleave="closeMenu"
+            >
+              <li @click="handleItemClick('新建')">新建</li>
+              <li @click="handleItemClick('保存')">保存</li>
+              <li @click="handleItemClick('另存为')">另存为</li>
+            </ul>
+          </transition>
         </div>
 
-        <div class="footer">
-          <p>Vue3 Canvas 交互演示 | 响应式设计 | 使用鼠标与矩形互动</p>
+        <div class="instructions">
+          <h3>组件功能说明</h3>
+          <ul>
+            <li class="feature">点击按钮显示/隐藏操作菜单</li>
+            <li class="feature">当鼠标离开整个菜单区域（包括连接区域）时，菜单自动隐藏</li>
+            <li class="feature">菜单左上角与按钮左下角完美对齐</li>
+            <li class="feature">菜单项悬停时有视觉反馈效果</li>
+            <li class="feature">平滑的显示/隐藏过渡动画</li>
+            <li class="feature">修复了按钮和菜单之间的间隙问题</li>
+            <li class="feature">菜单项点击后自动关闭菜单</li>
+          </ul>
+
+          <div style="margin-top: 20px; text-align: center; font-weight: bold; color: #fff">
+            当前状态: {{ statusText }}
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      const { createApp, ref, onMounted, reactive, computed, watch } = Vue
+      const { createApp, ref } = Vue
 
       createApp({
         setup() {
-          const canvas = ref(null)
-          const ctx = ref(null)
-          const displayWidth = ref(0)
-          const displayHeight = ref(0)
-          const scaleRatio = ref(1)
+          const menuVisible = ref(false)
+          const isMenuHovered = ref(false)
+          const isButtonHovered = ref(false)
+          const statusText = ref('菜单未打开')
 
-          // 逻辑尺寸（固定）
-          const logicalWidth = ref(600)
-          const logicalHeight = ref(400)
-
-          const rect = reactive({
-            x: 150,
-            y: 120,
-            width: 200,
-            height: 120,
-            color: '#FFD700', // 黄色
-            originalColor: '#FFD700',
-            originalColorName: '黄色',
-            hoverColor: '#FFA500',
-            activeColor: '#1E90FF', // 蓝色
-            activeColorName: '蓝色',
-            isActive: false,
-          })
-
-          // 计算显示尺寸
-          const displayRectX = computed(() => rect.x * scaleRatio.value)
-          const displayRectY = computed(() => rect.y * scaleRatio.value)
-          const displayRectWidth = computed(() => rect.width * scaleRatio.value)
-          const displayRectHeight = computed(() => rect.height * scaleRatio.value)
-
-          // 计算当前颜色名称
-          const colorName = computed(() => {
-            return rect.color === rect.originalColor ? rect.originalColorName : rect.activeColorName
-          })
-
-          // 添加颜色名称到rect对象
-          rect.colorName = colorName
-
-          const isDragging = ref(false)
-          const isHovering = ref(false)
-          const dragOffset = reactive({ x: 0, y: 0 })
-
-          // 初始化Canvas
-          const initCanvas = () => {
-            if (canvas.value) {
-              ctx.value = canvas.value.getContext('2d')
-              updateCanvasDimensions()
-              draw()
-            }
+          // 切换菜单显示状态
+          const toggleMenu = () => {
+            menuVisible.value = !menuVisible.value
+            statusText.value = menuVisible.value ? '菜单已打开' : '菜单已关闭'
           }
 
-          // 更新Canvas显示尺寸
-          const updateCanvasDimensions = () => {
-            if (!canvas.value) return
-
-            const container = canvas.value.parentElement
-            if (!container) return
-
-            // 获取容器宽度（限制最大宽度）
-            const maxWidth = logicalWidth.value
-            const containerWidth = Math.min(container.clientWidth, maxWidth)
-
-            // 计算缩放比例
-            scaleRatio.value = containerWidth / logicalWidth.value
-
-            // 设置显示尺寸
-            displayWidth.value = containerWidth
-            displayHeight.value = logicalHeight.value * scaleRatio.value
-
-            // 设置canvas元素的实际显示尺寸
-            canvas.value.style.width = `${displayWidth.value}px`
-            canvas.value.style.height = `${displayHeight.value}px`
-          }
-
-          // 绘制矩形
-          const draw = () => {
-            if (!ctx.value) return
-
-            // 清除画布
-            ctx.value.clearRect(0, 0, logicalWidth.value, logicalHeight.value)
-
-            // 绘制网格背景
-            drawGrid()
-
-            // 绘制矩形
-            ctx.value.fillStyle = rect.color
-
-            // 拖动时添加阴影和半透明效果
-            if (isDragging.value) {
-              ctx.value.shadowColor = 'rgba(0, 0, 0, 0.7)'
-              ctx.value.shadowBlur = 15
-              ctx.value.shadowOffsetX = 5
-              ctx.value.shadowOffsetY = 5
-              ctx.value.globalAlpha = 0.8
-            } else {
-              ctx.value.shadowColor = 'transparent'
-              ctx.value.shadowBlur = 0
-              ctx.value.globalAlpha = 1.0
-            }
-
-            // 在逻辑坐标上绘制矩形
-            ctx.value.fillRect(rect.x, rect.y, rect.width, rect.height)
-
-            // 悬停时绘制边框
-            if (isHovering.value && !isDragging.value) {
-              ctx.value.strokeStyle = '#FFFFFF'
-              ctx.value.lineWidth = 2
-              ctx.value.strokeRect(rect.x - 2, rect.y - 2, rect.width + 4, rect.height + 4)
-            }
-
-            // 重置阴影和透明度
-            ctx.value.shadowColor = 'transparent'
-            ctx.value.shadowBlur = 0
-            ctx.value.globalAlpha = 1.0
-          }
-
-          // 绘制网格背景
-          const drawGrid = () => {
-            ctx.value.strokeStyle = 'rgba(100, 100, 150, 0.2)'
-            ctx.value.lineWidth = 1
-
-            // 垂直线
-            for (let x = 0; x <= logicalWidth.value; x += 20) {
-              ctx.value.beginPath()
-              ctx.value.moveTo(x, 0)
-              ctx.value.lineTo(x, logicalHeight.value)
-              ctx.value.stroke()
-            }
-
-            // 水平线
-            for (let y = 0; y <= logicalHeight.value; y += 20) {
-              ctx.value.beginPath()
-              ctx.value.moveTo(0, y)
-              ctx.value.lineTo(logicalWidth.value, y)
-              ctx.value.stroke()
-            }
-          }
-
-          // 检查点是否在矩形内（使用逻辑坐标）
-          const isPointInRect = (logicalX, logicalY) => {
-            return (
-              logicalX >= rect.x &&
-              logicalX <= rect.x + rect.width &&
-              logicalY >= rect.y &&
-              logicalY <= rect.y + rect.height
-            )
-          }
-
-          // 鼠标按下事件
-          const handleMouseDown = (e) => {
-            const canvasBounds = canvas.value.getBoundingClientRect()
-            const mouseX = e.clientX - canvasBounds.left
-            const mouseY = e.clientY - canvasBounds.top
-
-            // 将显示坐标转换为逻辑坐标
-            const logicalX = mouseX / scaleRatio.value
-            const logicalY = mouseY / scaleRatio.value
-
-            if (isPointInRect(logicalX, logicalY)) {
-              isDragging.value = true
-
-              // 计算拖动偏移量（逻辑坐标）
-              dragOffset.x = logicalX - rect.x
-              dragOffset.y = logicalY - rect.y
-
-              // 点击矩形切换颜色
-
-              rect.color = rect.activeColor
-
-              draw()
-            }
-          }
-
-          // 鼠标移动事件
-          const handleMouseMove = (e) => {
-            const canvasBounds = canvas.value.getBoundingClientRect()
-            const mouseX = e.clientX - canvasBounds.left
-            const mouseY = e.clientY - canvasBounds.top
-
-            // 将显示坐标转换为逻辑坐标
-            const logicalX = mouseX / scaleRatio.value
-            const logicalY = mouseY / scaleRatio.value
-
-            // 检查悬停状态
-            isHovering.value = isPointInRect(logicalX, logicalY)
-
-            // 处理拖动
-            if (isDragging.value) {
-              // 计算矩形新位置（逻辑坐标）
-              const newX = logicalX - dragOffset.x
-              const newY = logicalY - dragOffset.y
-
-              // 限制在画布范围内
-              rect.x = Math.max(0, Math.min(logicalWidth.value - rect.width, newX))
-              rect.y = Math.max(0, Math.min(logicalHeight.value - rect.height, newY))
-
-              draw()
-            } else {
-              // 仅当状态变化时重绘
-              if (isHovering.value) {
-                draw()
+          // 关闭菜单
+          const closeMenu = () => {
+            // 添加延迟关闭，确保菜单可以点击
+            setTimeout(() => {
+              if (!isButtonHovered.value && !isMenuHovered.value) {
+                menuVisible.value = false
+                statusText.value = '菜单已关闭'
               }
+            }, 100)
+          }
+
+          // 处理按钮鼠标进入
+          const handleButtonEnter = () => {
+            isButtonHovered.value = true
+          }
+
+          // 处理菜单鼠标进入
+          const handleMenuEnter = () => {
+            isMenuHovered.value = true
+          }
+
+          // 处理菜单项点击
+          const handleItemClick = (action) => {
+            alert(`执行操作: ${action}`)
+            menuVisible.value = false
+            statusText.value = `已执行: ${action}`
+
+            // 重置状态
+            setTimeout(() => {
+              isButtonHovered.value = false
+              isMenuHovered.value = false
+            }, 100)
+          }
+
+          // 监听鼠标移动，更新状态
+          document.addEventListener('mousemove', () => {
+            if (menuVisible.value && !isButtonHovered.value && !isMenuHovered.value) {
+              closeMenu()
             }
-          }
-
-          // 鼠标释放事件
-          const handleMouseUp = () => {
-            isDragging.value = false
-            rect.color = rect.originalColor
-            draw()
-          }
-
-          // 鼠标离开画布
-          const handleMouseLeave = () => {
-            isHovering.value = false
-            if (!isDragging.value) {
-              draw()
-            }
-          }
-
-          // 重置位置
-          const resetPosition = () => {
-            rect.x = 150
-            rect.y = 120
-            draw()
-          }
-
-          // 重置全部
-          const resetAll = () => {
-            rect.x = 150
-            rect.y = 120
-            rect.color = rect.originalColor
-            draw()
-          }
-
-          // 窗口大小变化时更新Canvas尺寸
-          const handleResize = () => {
-            updateCanvasDimensions()
-            draw()
-          }
-
-          onMounted(() => {
-            initCanvas()
-
-            // 添加事件监听器
-            if (canvas.value) {
-              canvas.value.addEventListener('mousedown', handleMouseDown)
-              canvas.value.addEventListener('mousemove', handleMouseMove)
-              canvas.value.addEventListener('mouseup', handleMouseUp)
-              canvas.value.addEventListener('mouseleave', handleMouseLeave)
-            }
-
-            // 监听窗口大小变化
-            window.addEventListener('resize', handleResize)
           })
 
           return {
-            canvas,
-            rect,
-            isDragging,
-            displayRectX,
-            displayRectY,
-            displayRectWidth,
-            displayRectHeight,
-            logicalWidth,
-            logicalHeight,
-            displayWidth,
-            displayHeight,
-            scaleRatio,
-            resetPosition,
-            resetAll,
+            menuVisible,
+            statusText,
+            toggleMenu,
+            closeMenu,
+            handleButtonEnter,
+            handleMenuEnter,
+            handleItemClick,
           }
         },
       }).mount('#app')
