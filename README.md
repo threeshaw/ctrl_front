@@ -62,3 +62,6 @@ npm run test:e2e -- --debug
 ```sh
 npm run lint
 ```
+
+7.25update
+新增文件输入功能，保存输入excel为json，并在左边文件列表中增加一个提示。
