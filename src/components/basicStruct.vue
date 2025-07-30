@@ -2,13 +2,27 @@
   <body>
     <div class="vscode-top-bar">
       <div class="menu-bar">
-        <div class="menu-item" @click="showlist">文件</div>
-        <div class="menu-item">编辑</div>
-        <div class="menu-item">选择</div>
-        <div class="menu-item">查看</div>
-        <div class="menu-item">运行</div>
-        <div class="menu-item">终端</div>
-        <div class="menu-item">帮助</div>
+        <ul class="menu-item" @click="showlist">
+          预览
+        </ul>
+        <ul class="menu-item">
+          趋势
+        </ul>
+        <ul class="menu-item">
+          新建
+        </ul>
+        <ul class="menu-item">
+          删除
+        </ul>
+        <ul class="menu-item">
+          分析
+        </ul>
+        <ul class="menu-item">
+          导入
+        </ul>
+        <ul class="menu-item">
+          导出
+        </ul>
       </div>
       <div class="click-listf" id="clickfile" v-show="dispfile" @click="triggerFileInput">
         <div class="list-item">新建</div>
@@ -23,11 +37,11 @@
         <div class="window-control close"></div>
       </div> -->
     </div>
-
+    <!-- <div class="modellist">模型选择</div> -->
     <div class="container">
       <!-- 侧边栏 -->
       <div class="sidebar">
-        <p>
+        <div>
           数据输入
           <input
             type="file"
@@ -36,23 +50,20 @@
             accept=".xlsx, .xls ,.csv"
             style="display: none"
           />
-          <button @click="triggerFileInput">导入Excel</button>
-        </p>
-        <div class="datalist">
+        </div>
+        <leftlist></leftlist>
+        <div class="datalist" v-show="false">
           <ul class="input1" v-for="item in datalist">
             {{
               item
             }}
           </ul>
         </div>
-        <div class="modellist">模型选择</div>
       </div>
 
       <!-- 编辑器区域 -->
       <div class="editor-container">
-        <div class="tabs">
-          <button class="run">运行</button>
-        </div>
+        <div class="tabs"></div>
         <canvas class="mainCanvas"></canvas>
         <!-- 点击时显示的列表 -->
         <!-- <div class="click-list" id="click-list">
@@ -97,9 +108,9 @@
   </body>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import * as XLSX from 'xlsx'
-
+import leftlist from './leftlist.vue'
 let dispfile = ref(false)
 const datalist = ref([])
 const fileInput = ref(null)
@@ -139,322 +150,87 @@ const handleFileChange = (e) => {
   }
   reader.readAsArrayBuffer(file)
 }
+
+const initialItems = [
+  { title: '前端开发', expanded: false, selected: null },
+  { title: '后端开发', expanded: false, selected: null },
+  { title: 'UI/UX 设计', expanded: false, selected: null },
+  { title: '项目测试', expanded: false, selected: null },
+  { title: '文档编写', expanded: false, selected: null },
+]
+
+const items = ref([...initialItems])
+const expandedItem = ref(null)
+
+// 计算已选择的选项数量
+const selectedCount = computed(() => {
+  return items.value.filter((item) => item.selected !== null).length
+})
+
+// 切换列表项展开状态
+const toggleItem = (index) => {
+  if (expandedItem.value === index) {
+    // 如果点击的是已展开的项，则收起
+    items.value[index].expanded = false
+    expandedItem.value = null
+  } else {
+    // 收起之前展开的项
+    if (expandedItem.value !== null) {
+      items.value[expandedItem.value].expanded = false
+    }
+
+    // 展开当前项
+    items.value[index].expanded = true
+    expandedItem.value = index
+  }
+}
+
+// 选择选项
+const selectOption = (itemIndex, option) => {
+  items.value[itemIndex].selected = option
+}
+
+// 添加新项目
+const addItem = () => {
+  const newIndex = items.value.length + 1
+  items.value.push({
+    title: `新项目 ${newIndex}`,
+    expanded: false,
+    selected: null,
+  })
+}
+
+// 删除最后一项
+const removeLastItem = () => {
+  if (items.value.length > 3) {
+    // 如果删除的是当前展开的项
+    if (expandedItem.value === items.value.length - 1) {
+      expandedItem.value = null
+    }
+    items.value.pop()
+  }
+}
+
+// 重置列表
+const resetItems = () => {
+  items.value = [...initialItems]
+  expandedItem.value = null
+}
 </script>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-}
-
-body {
-  background: #faf9f9;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* VS Code顶部控制台样式 */
-.vscode-top-bar {
-  background-color: #dc1010;
-  height: 40px;
-  width: 1000px;
-  align-items: center;
-  padding: 0 15px;
-  border-bottom: 1px solid #3c3c3c;
-}
-
 .menu-bar {
+  width: 1000px;
+  height: 50px;
   display: flex;
-
-  margin-right: auto;
+  background-color: brown;
+  position: absolute;
+  left: 0px;
+  top: 0px;
 }
-
-.menu-item {
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 13px;
-  -webkit-app-region: no-drag;
-}
-
-.menu-item:hover {
-  background-color: #3a3d41;
-}
-
-.window-controls {
-  position: relative;
-  left: 80%;
-  display: flex;
-  gap: 12px;
-  -webkit-app-region: no-drag;
-}
-
-.window-control {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.minimize {
-  background-color: #f1fa8c;
-}
-
-.maximize {
-  background-color: #50fa7b;
-}
-
-.close {
-  background-color: #ff5555;
-}
-
-/* 主内容区域 */
 .container {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* 侧边栏样式 */
-.sidebar {
-  width: 200px;
-  background-color: #333333;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 15px;
-  border-right: 1px solid #252526;
-}
-
-.datalist {
-  width: 180px;
-  height: 200px;
-  background-color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 15px;
-  border-right: 1px solid #252526;
-}
-.modellist {
-  margin-top: 20px;
-  width: 190px;
-  height: 240px;
-  background-color: #f5e505;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 15px;
-}
-/* 编辑器区域 */
-.editor-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tabs {
-  display: flex;
-  background-color: #252526;
-  border-bottom: 1px solid #2d2d2d;
-  height: 35px;
-}
-.run {
-  padding: 5px 10px;
-  margin-top: 5px;
-  margin-right: 10px;
-}
-.mainCanvas {
-  display: flex;
-  background-color: white;
-  border-width: 3px;
-  margin-top: 10px;
-  width: 200px;
-  height: 200px;
-}
-.tab {
-  padding: 8px 15px;
-  font-size: 13px;
-  background-color: #2d2d2d;
-  border-right: 1px solid #2d2d2d;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.tab.active {
-  background-color: #1e1e1e;
-  color: #ffffff;
-}
-
-.tab .close-icon {
-  margin-left: 10px;
-  opacity: 0.5;
-}
-
-.tab .close-icon:hover {
-  opacity: 1;
-}
-
-.editor {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  position: relative;
-  cursor: text;
-}
-
-.editor-line {
-  margin-bottom: 2px;
-}
-
-.comment {
-  color: #6a9955;
-}
-
-.keyword {
-  color: #569cd6;
-}
-
-.function {
-  color: #dcdcaa;
-}
-
-.string {
-  color: #ce9178;
-}
-
-.number {
-  color: #b5cea8;
-}
-
-/* 点击时显示的列表 */
-.click-list {
-  position: 20%;
-  background-color: #252526;
-  border: 1px solid #454545;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-  width: 250px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-.click-listf {
-  background-color: #252526;
-  border: 1px solid #454545;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-  width: 250px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.list-item {
-  padding: 8px 15px;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.list-item:hover {
-  background-color: #2a2d2e;
-}
-
-.list-item .icon {
-  margin-right: 10px;
-  color: #569cd6;
-}
-
-/* 状态栏 */
-.status-bar {
-  height: 22px;
-  background-color: #0078d4;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-size: 12px;
-  justify-content: space-between;
-  color: #ffffff;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-}
-
-.status-item i {
-  margin-right: 5px;
-}
-
-/* 底部控制台 */
-.console-container {
-  height: 200px;
-  width: 100%;
-  background-color: #1e1e1e;
-  border-top: 1px solid #3c3c3c;
-  display: flex;
-  flex-direction: column;
-}
-
-.console-header {
-  height: 35px;
-  background-color: #252526;
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  font-size: 13px;
-  border-bottom: 1px solid #2d2d2d;
-}
-
-.console-header .tab {
-  background-color: transparent;
-  border-bottom: 1px solid transparent;
-}
-
-.console-header .tab.active {
-  border-bottom: 1px solid #0078d4;
-}
-
-.console-content {
-  flex: 1;
-  padding: 10px 15px;
-  overflow-y: auto;
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.console-line {
-  margin-bottom: 5px;
-}
-
-.console-line.error {
-  color: #f48771;
-}
-
-.console-line.warning {
-  color: #dcdcaa;
-}
-
-.console-line.info {
-  color: #9cdcfe;
-}
-
-.console-line.success {
-  color: #50fa7b;
-}
-.input1 {
-  list-style-type: square;
-  color: #080000;
+  position: absolute;
+  left: 0px;
+  top: 100px;
+  background-color: bisque;
 }
 </style>
