@@ -37,12 +37,15 @@
         <div class="window-control close"></div>
       </div> -->
     </div>
+    <div class="blocker">leftlist</div>
     <!-- <div class="modellist">模型选择</div> -->
     <div class="container">
       <!-- 侧边栏 -->
       <div class="sidebar">
         <div>
-          数据输入
+          <ul>
+            数据输入
+          </ul>
           <input
             type="file"
             ref="fileInput"
@@ -51,7 +54,7 @@
             style="display: none"
           />
         </div>
-        <leftlist></leftlist>
+
         <div class="datalist" v-show="false">
           <ul class="input1" v-for="item in datalist">
             {{
@@ -184,40 +187,15 @@ const toggleItem = (index) => {
     expandedItem.value = index
   }
 }
-
-// 选择选项
-const selectOption = (itemIndex, option) => {
-  items.value[itemIndex].selected = option
-}
-
-// 添加新项目
-const addItem = () => {
-  const newIndex = items.value.length + 1
-  items.value.push({
-    title: `新项目 ${newIndex}`,
-    expanded: false,
-    selected: null,
-  })
-}
-
-// 删除最后一项
-const removeLastItem = () => {
-  if (items.value.length > 3) {
-    // 如果删除的是当前展开的项
-    if (expandedItem.value === items.value.length - 1) {
-      expandedItem.value = null
-    }
-    items.value.pop()
-  }
-}
-
-// 重置列表
-const resetItems = () => {
-  items.value = [...initialItems]
-  expandedItem.value = null
-}
 </script>
 <style>
+.blocker {
+  width: 100px;
+  background-color: yellow;
+  height: auto;
+  min-height: 200px;
+  left: 20px;
+}
 .menu-bar {
   width: 1000px;
   height: 50px;
@@ -231,6 +209,15 @@ const resetItems = () => {
   position: absolute;
   left: 0px;
   top: 100px;
-  background-color: bisque;
+  background-color: rgb(40, 23, 2);
+}
+.click-listf {
+  border: 2px;
+  border-style: dashed;
+  border-color: black;
+  position: absolute;
+  left: 0px;
+  top: 50px;
+  z-index: 10;
 }
 </style>

@@ -33,6 +33,7 @@ export default {
 
       if (isValid) {
         this.error = ''
+        console.log(submit)
         this.$emit('unlock')
       } else {
         this.error = '用户名或密码错误'
