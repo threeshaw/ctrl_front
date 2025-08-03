@@ -30,23 +30,22 @@
   </div>
   <body>
     <div class="leftCon">
-      <div class="listItem" @click="fun1">数据管理</div>
-      <li v-for="li1 in funcList" v-if="show1" @click="handleClick($event, li1)">
+      <RouterLink to="/data" active-class="active" @click="fun1">数据</RouterLink>
+      <div class="listItem">数据管理</div>
+      <li v-for="li1 in funcList" v-if="show1" @click="handleClick1($event, li1)">
         {{ li1 }}
       </li>
-      <li class="listItem">模型辨识</li>
+      <RouterLink to="/model" active-class="active" @click="fun2">模型</RouterLink>
+      <li v-for="li1 in modelIden" v-if="show2" @click="handleClick2($event, li1)">
+        {{ li1 }}
+      </li>
       <li class="listItem">参数组态</li>
       <li class="listItem">仿真测试</li>
       {{ value }}
     </div>
     <div class="container">
       <!-- 侧边栏 -->
-      <div class="blocker">文件列表</div>
-      <!-- 编辑器区域 -->
-      <div class="editor-container" v-if="showData">数据展示</div>
-      <div class="ioChart" v-if="false">输入输出设置</div>
-      <div class="modelChoose" v-if="false">模型选择</div>
-      <div class="resShow" v-if="false">结果展示</div>
+      <RouterView></RouterView>
     </div>
   </body>
 </template>
@@ -56,15 +55,31 @@ import { ref } from 'vue'
 
 const funcList = ref(['file1', 'file2'])
 const show1 = ref(false)
+const show2 = ref(false)
 const showData = ref(false)
+const showModel = ref(false)
+const modelIden = ref(['过程变量', '过程曲线', '过程模型', '模型输出'])
 const fun1 = () => {
   show1.value = !show1.value
   console.log(show1.value)
 }
-const handleClick = (event, item) => {
+const fun2 = () => {
+  show2.value = !show2.value
+  console.log(show2.value)
+}
+const handleClick1 = (event, item) => {
   event.preventDefault() // 阻止默认行为
   console.log('DOM event:', event)
   showData.value = true
+  showModel.value = false
+  console.log('Item data:', item)
+}
+
+const handleClick2 = (event, item) => {
+  event.preventDefault() // 阻止默认行为
+  console.log('DOM event:', event)
+  showData.value = false
+  showModel.value = true
   console.log('Item data:', item)
 }
 </script>
@@ -93,16 +108,16 @@ const handleClick = (event, item) => {
   border: 2px blue solid;
   border-radius: 0px;
   position: relative;
-  left: 0px;
+  left: 50px;
   width: 2800px;
   z-index: 1;
   overflow: scroll;
 }
 .leftCon {
   display: inline;
-  width: 100px;
-  height: 200px;
-  overflow: hidden;
+  width: 150px;
+  height: 400px;
+  overflow: scroll;
   position: absolute;
   left: 0px;
   top: 80px;

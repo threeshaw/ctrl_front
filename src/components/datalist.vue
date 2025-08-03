@@ -128,7 +128,7 @@
           </div>
 
           <div class="button-group">
-            <button @click="generateRandomData">生成随机数据</button>
+            <button @click="generateRandomData">下一步</button>
             <button @click="clearCanvas">清除画布</button>
           </div>
         </div>
@@ -138,7 +138,7 @@
 </template>
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-
+import { RouterLink, RouterView } from 'vue-router'
 const canvas = ref(null)
 const ctx = ref(null)
 const fileInput = ref(null)
@@ -338,21 +338,7 @@ const drawScatterPlot = () => {
   const width = canvasEl.width
   const height = canvasEl.height
   const padding = 50
-  const show1 = ref(false)
-  const show2 = ref(false)
-  const show3 = ref(false)
-  const changeState1 = () => {
-    show1.value = !show1.value
-  }
-  const changeState2 = () => {
-    show2.value = !show2.value
-  }
-  const changeState3 = () => {
-    show3.value = !show3.value
-  }
-  const list1 = ['f1', 'f2', 'f3']
-  const list2 = []
-  const list3 = []
+
   // 计算比例因子
   const xMin = xRange.value[0]
   const xMax = xRange.value[1]
