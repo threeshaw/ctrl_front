@@ -65,3 +65,7 @@ npm run lint
 
 7.25update
 新增文件输入功能，保存输入excel为json，并在左边文件列表中增加一个提示。
+
+8.3 update
+在主界面newStru界面新增了路由跳转功能，当点击数据/模型后应该在右边框内加载对应模块，但是路由目前存在一些bug待修理
+目前构思的两个主界面：dataflow对应io设定与模型选择，datalist对应数据观察，可以加载到APP.vue中看对应模块。
