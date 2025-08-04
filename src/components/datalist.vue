@@ -40,32 +40,14 @@
   </div>
 
   <!-- 主应用 -->
-  <div class="containerleft">
-    <ul class="mainlist">
-      <div @click="changeState1">过程数据</div>
-      <div v-for="item in list1" v-if="show1">
-        {{ item }}
-      </div>
-    </ul>
-    <ul class="mainlist">
-      <div @click="changeState2">过程变量</div>
-      <div v-for="item in list2" v-if="show2">
-        {{ item }}
-      </div>
-    </ul>
-    <ul class="mainlist">
-      <div @click="changeState2">过程曲线</div>
-      <div v-for="item in list3" v-if="show3">
-        {{ item }}
-      </div>
-    </ul>
-  </div>
-  <div class="container">
+
+  <div class="containerdata">
     <div class="main-content">
       <div class="file-list">
         <div class="file-list-header">
           <h2>数据集列表</h2>
           <button class="secondary" @click="openNewFileModal">+ 新建文件</button>
+          <button class="secondary" @click="delChosen">- 删除选择</button>
         </div>
 
         <div
@@ -74,6 +56,8 @@
           class="file-item"
           :class="{ active: activeFileIndex === index }"
           @dblclick="loadFile(index)"
+          @click="chosen(index)"
+          :style="{ backgroundColor: index == choice ? currentColor : 'rgb(30, 40, 80, 0.6)' }"
         >
           <h3>
             {{ file.name }}
@@ -144,7 +128,7 @@ const ctx = ref(null)
 const fileInput = ref(null)
 
 // 文件数据
-const files = ref([
+let files = ref([
   {
     name: '用户集',
     description: '用户分析',
@@ -178,7 +162,6 @@ const newFile = ref({
   file: null,
   data: [],
 })
-
 // 计算数据范围
 const xRange = computed(() => {
   if (!currentData.value.length) return [0, 0]
@@ -202,6 +185,7 @@ const openNewFileModal = () => {
   modalTitle.value = '新建数据集'
   editingIndex.value = -1
   showModal.value = true
+  console.log('star')
 }
 
 // 编辑文件
@@ -236,6 +220,7 @@ const resetNewFile = () => {
 // 触发文件选择
 const triggerFileInput = () => {
   fileInput.value.click()
+  console.log('startle')
 }
 
 // 处理文件上传
@@ -319,14 +304,32 @@ const addNewFile = () => {
   showModal.value = false
   resetNewFile()
 }
+//删除文件
 
+const twoStyle = ['rgb(30, 40, 80, 0.6)', 'yellow']
+let currentColor = ref(twoStyle[0])
+let currentColorCho = 0
+let choice = ref(null)
 // 加载文件数据
 const loadFile = (index) => {
   activeFileIndex.value = index
   currentData.value = [...files.value[index].data]
   drawScatterPlot()
 }
-
+const chosen = (index) => {
+  choice.value = index
+  if (currentColorCho == 0) {
+    currentColorCho = 1
+  } else {
+    currentColorCho = 0
+  }
+  currentColor.value = twoStyle[currentColorCho]
+}
+const delChosen = () => {
+  console.log(choice.value)
+  files.value.splice(choice.value, 1)
+  console.log(files.value.length)
+}
 // 绘制散点图
 const drawScatterPlot = () => {
   if (!ctx.value || !currentData.value.length) return
@@ -449,6 +452,11 @@ function getCurrentDate() {
 onMounted(() => {
   ctx.value = canvas.value.getContext('2d')
 })
+
+defineExpose({
+  triggerFileInput,
+  openNewFileModal,
+})
 </script>
 
 <style>
@@ -478,10 +486,10 @@ body {
   left: 0px;
   top: 0px;
 }
-.container {
-  width: 95%;
+.containerdata {
+  width: 1000px;
   max-width: 1400px;
-  height: 90vh;
+  height: auto;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   border-radius: 20px;
@@ -523,7 +531,6 @@ body {
 }
 
 .file-item {
-  background: rgba(30, 40, 80, 0.6);
   border-radius: 10px;
   padding: 15px;
   margin-bottom: 15px;

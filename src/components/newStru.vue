@@ -15,7 +15,7 @@
     <ul class="menu-item">
       分析
     </ul>
-    <ul class="menu-item">
+    <ul class="menu-item" @click="fileIn">
       导入
     </ul>
     <ul class="menu-item">
@@ -30,28 +30,33 @@
   </div>
   <body>
     <div class="leftCon">
-      <RouterLink to="/data" active-class="active" @click="fun1">数据</RouterLink>
-      <div class="listItem">数据管理</div>
-      <li v-for="li1 in funcList" v-if="show1" @click="handleClick1($event, li1)">
-        {{ li1 }}
-      </li>
-      <RouterLink to="/model" active-class="active" @click="fun2">模型</RouterLink>
-      <li v-for="li1 in modelIden" v-if="show2" @click="handleClick2($event, li1)">
-        {{ li1 }}
-      </li>
+      <!-- <div>
+        <RouterLink to="/data" active-class="active" @click="fun1">数据管理</RouterLink>
+        <li v-for="li1 in funcList" v-if="show1" @click="handleClick1($event, li1)">
+          {{ li1 }}
+        </li>
+      </div>
+
+      <div>
+        <RouterLink to="/model" active-class="active" @click="fun2">模型辨识</RouterLink>
+        <li v-for="li1 in modelIden" v-if="show2" @click="handleClick2($event, li1)">
+          {{ li1 }}
+        </li>
+      </div> -->
+
       <li class="listItem">参数组态</li>
       <li class="listItem">仿真测试</li>
       {{ value }}
     </div>
     <div class="container">
       <!-- 侧边栏 -->
-      <RouterView></RouterView>
+      <dataList ref="datalist"></dataList>
     </div>
   </body>
 </template>
 <script setup>
-import leftlist from './leftlist.vue'
 import { ref } from 'vue'
+import dataList from './datalist.vue'
 
 const funcList = ref(['file1', 'file2'])
 const show1 = ref(false)
@@ -82,6 +87,13 @@ const handleClick2 = (event, item) => {
   showModel.value = true
   console.log('Item data:', item)
 }
+
+const datalist = ref(null)
+function fileIn() {
+  if (datalist.value) {
+    datalist.value.openNewFileModal()
+  }
+}
 </script>
 
 <style scoped>
@@ -104,13 +116,14 @@ const handleClick2 = (event, item) => {
   background-color: aqua;
 }
 .container {
+  height: 1000px;
   display: inline-block;
   border: 2px blue solid;
   border-radius: 0px;
   position: relative;
   left: 50px;
   width: 2800px;
-  z-index: 1;
+  z-index: 5;
   overflow: scroll;
 }
 .leftCon {

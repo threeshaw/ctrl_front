@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import dataflow from '@/components/dataflow.vue'
-import datalist from '@/components/datalist.vue'
+import dataflow from '../components/dataflow.vue'
+import datalist from '../components/datalist.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
