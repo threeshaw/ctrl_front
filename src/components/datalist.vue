@@ -50,7 +50,7 @@
           <button class="secondary" @click="delChosen">- 删除选择</button>
         </div>
 
-        <div
+        <!-- <div
           v-for="(file, index) in files"
           :key="index"
           class="file-item"
@@ -68,8 +68,29 @@
             <span>数据点: {{ file.data.length }}</span>
             <span>更新于: {{ file.updated }}</span>
           </div>
+        </div> -->
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>位置号</th>
+                <th>单位</th>
+                <th>属性</th>
+                <th>公式</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, rowIndex) in dataInChart"
+                :key="rowIndex"
+                @click="chosen(rowIndex)"
+                :style="background = currentColor"
+              >
+                <td v-for="(value, colIndex) in row" :key="colIndex">{{ value }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
         <p v-if="files.length === 0" style="color: #90a4ae; text-align: center; margin-top: 20px">
           暂无数据集，请点击"新建文件"按钮添加
         </p>
@@ -114,6 +135,7 @@
           <div class="button-group">
             <button @click="generateRandomData">下一步</button>
             <button @click="clearCanvas">清除画布</button>
+            <button @click="renewChart">gengx</button>
           </div>
         </div>
       </div>
@@ -126,7 +148,7 @@ import { RouterLink, RouterView } from 'vue-router'
 const canvas = ref(null)
 const ctx = ref(null)
 const fileInput = ref(null)
-
+const dataInChart = ref([])
 // 文件数据
 let files = ref([
   {
@@ -148,13 +170,25 @@ let files = ref([
     updated: getCurrentDate(),
   },
 ])
-
+let leftFileList = ref(['1'])
 const activeFileIndex = ref(-1)
 const currentData = ref([])
 const showModal = ref(false)
 const modalTitle = ref('新建数据集')
 const editingIndex = ref(-1)
 
+const renewChart = () => {
+  console.log('100')
+  for (let i = 0; i < files.value.length; i = i + 1) {
+    dataInChart.value.push([
+      files.value[i].name,
+      files.value[i].description,
+      files.value[i].updated,
+      '0',
+    ])
+    leftFileList.value.push(files.value[i].name)
+  }
+}
 // 新文件数据模型
 const newFile = ref({
   name: '',
@@ -303,6 +337,7 @@ const addNewFile = () => {
 
   showModal.value = false
   resetNewFile()
+  renewChart()
 }
 //删除文件
 
@@ -317,6 +352,7 @@ const loadFile = (index) => {
   drawScatterPlot()
 }
 const chosen = (index) => {
+  console.log(index)
   choice.value = index
   if (currentColorCho == 0) {
     currentColorCho = 1
@@ -451,11 +487,14 @@ function getCurrentDate() {
 
 onMounted(() => {
   ctx.value = canvas.value.getContext('2d')
+  renewChart()
 })
 
 defineExpose({
   triggerFileInput,
   openNewFileModal,
+  files,
+  leftFileList,
 })
 </script>
 

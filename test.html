@@ -2,350 +2,67 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>下拉选择输入框组件</title>
+    <title>Vue 3 表格组件</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      }
-
-      body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-      }
-
-      .container {
-        max-width: 800px;
+      table {
+        border-collapse: collapse;
         width: 100%;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
       }
-
-      header {
-        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
-        color: white;
-        padding: 25px 30px;
-        text-align: center;
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
       }
-
-      header h1 {
-        font-size: 2.2rem;
-        margin-bottom: 10px;
-      }
-
-      header p {
-        opacity: 0.85;
-        font-size: 1.1rem;
-      }
-
-      .content {
-        padding: 30px;
-      }
-
-      .intro {
-        text-align: center;
-        margin-bottom: 40px;
-      }
-
-      .intro h2 {
-        color: #2c3e50;
-        font-size: 1.8rem;
-        margin-bottom: 15px;
-      }
-
-      .intro p {
-        color: #7f8c8d;
-        font-size: 1.1rem;
-        max-width: 600px;
-        margin: 0 auto;
-        line-height: 1.6;
-      }
-
-      .component-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px 0;
-      }
-
-      .custom-select {
-        position: relative;
-        width: 100%;
-        max-width: 500px;
-        margin: 20px 0;
-      }
-
-      .select-input {
-        width: 100%;
-        padding: 18px 20px;
-        font-size: 1.1rem;
-        border: 2px solid #3498db;
-        border-radius: 12px;
-        background-color: #f8f9fa;
-        cursor: pointer;
-        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
-        transition: all 0.3s ease;
-        outline: none;
-      }
-
-      .select-input:focus {
-        border-color: #2980b9;
-        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.3);
-      }
-
-      .select-input::placeholder {
-        color: #95a5a6;
-      }
-
-      .options-container {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        margin-top: 10px;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(-10px);
-        visibility: hidden;
-        transition: all 0.3s ease;
-        z-index: 100;
-      }
-
-      .options-container.active {
-        opacity: 1;
-        transform: translateY(0);
-        visibility: visible;
-      }
-
-      .option {
-        padding: 16px 20px;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #eee;
-      }
-
-      .option:last-child {
-        border-bottom: none;
-      }
-
-      .option:hover {
-        background-color: #f1f8ff;
-        transform: translateX(5px);
-      }
-
-      .option .icon {
-        margin-right: 15px;
-        font-size: 1.3rem;
-        width: 30px;
-        text-align: center;
-      }
-
-      .features {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 25px;
-        margin-top: 40px;
-      }
-
-      .feature-card {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 25px;
-        width: 220px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease;
-      }
-
-      .feature-card:hover {
-        transform: translateY(-10px);
-      }
-
-      .feature-card .icon {
-        font-size: 2.5rem;
-        margin-bottom: 15px;
-        color: #3498db;
-      }
-
-      .feature-card h3 {
-        color: #2c3e50;
-        margin-bottom: 10px;
-      }
-
-      .feature-card p {
-        color: #7f8c8d;
-        font-size: 0.95rem;
-      }
-
-      .footer {
-        text-align: center;
-        padding: 25px;
-        color: white;
-        background: rgba(0, 0, 0, 0.1);
-        margin-top: 40px;
-        border-radius: 0 0 15px 15px;
-      }
-
-      .footer a {
-        color: #3498db;
-        text-decoration: none;
-      }
-
-      .footer a:hover {
-        text-decoration: underline;
-      }
-
-      @media (max-width: 768px) {
-        .features {
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .feature-card {
-          width: 100%;
-          max-width: 350px;
-        }
-
-        header h1 {
-          font-size: 1.8rem;
-        }
-
-        .select-input {
-          padding: 15px;
-        }
+      th {
+        background-color: #f2f2f2;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>下拉选择输入框组件</h1>
-        <p>点击输入框显示选项列表，点击选项或外部区域关闭列表</p>
-      </header>
-
-      <div class="content">
-        <div class="intro">
-          <h2>智能下拉选择器</h2>
-          <p>
-            这个组件提供了美观的用户体验，当用户点击输入框时，会显示一个包含5个选项的下拉列表。点击选项会自动填充输入框并关闭列表，点击页面其他区域也会自动关闭列表。
-          </p>
-        </div>
-
-        <div class="component-container">
-          <div class="custom-select">
-            <input
-              type="text"
-              class="select-input"
-              placeholder="请选择您喜欢的编程语言"
-              id="language-selector"
-              readonly
-            />
-            <div class="options-container" id="options-container">
-              <div class="option" data-value="JavaScript">
-                <span class="icon">🟨</span>
-                <span>JavaScript</span>
-              </div>
-              <div class="option" data-value="Python">
-                <span class="icon">🐍</span>
-                <span>Python</span>
-              </div>
-              <div class="option" data-value="Java">
-                <span class="icon">☕</span>
-                <span>Java</span>
-              </div>
-              <div class="option" data-value="C++">
-                <span class="icon">🔷</span>
-                <span>C++</span>
-              </div>
-              <div class="option" data-value="Go">
-                <span class="icon">🚀</span>
-                <span>Go</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="features">
-          <div class="feature-card">
-            <div class="icon">✨</div>
-            <h3>美观的UI设计</h3>
-            <p>精心设计的渐变背景、阴影效果和平滑动画，提供现代感用户体验</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="icon">⚡</div>
-            <h3>响应式布局</h3>
-            <p>完全响应式设计，在手机、平板和桌面设备上都有完美表现</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="icon">🎯</div>
-            <h3>直观的交互</h3>
-            <p>点击输入框展开选项，选择后自动关闭，点击外部区域自动关闭列表</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <p>© 2023 下拉选择输入框组件 | 设计与开发</p>
-      </div>
+    <div id="app">
+      <simple-table :data="tableData"></simple-table>
     </div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const selectInput = document.getElementById('language-selector')
-        const optionsContainer = document.getElementById('options-container')
-        const options = document.querySelectorAll('.option')
+      const SimpleTable = {
+        props: ['data'],
+        template: `
+        <table>
+          <thead>
+            <tr>
+              <th>位号</th>
+              <th>列2</th>
+              <th>列3</th>
+              <th>列4</th>
+              <th>列</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>2</td>
+            </tr>
+          </tbody>
+        </table>
+      `,
+      }
 
-        // 点击输入框时切换选项列表的可见性
-        selectInput.addEventListener('click', function (e) {
-          e.stopPropagation()
-          optionsContainer.classList.toggle('active')
-        })
-
-        // 点击选项时
-        options.forEach((option) => {
-          option.addEventListener('click', function () {
-            const value = this.getAttribute('data-value')
-            selectInput.value = value
-            optionsContainer.classList.remove('active')
-          })
-        })
-
-        // 点击文档其他部分时关闭选项列表
-        document.addEventListener('click', function (e) {
-          if (!selectInput.contains(e.target) && !optionsContainer.contains(e.target)) {
-            optionsContainer.classList.remove('active')
+      const app = Vue.createApp({
+        components: { SimpleTable },
+        data() {
+          return {
+            tableData: [
+              [1, 2, 3, 4, 5],
+              ['A', 'B', 'C', 'D', 'E'],
+              ['Vue', 'React', 'Angular', 'Svelte', 'Next'],
+            ],
           }
-        })
-
-        // 添加键盘支持
-        selectInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            optionsContainer.classList.toggle('active')
-          } else if (e.key === 'Escape') {
-            optionsContainer.classList.remove('active')
-          }
-        })
+        },
       })
+
+      app.mount('#app')
     </script>
   </body>
 </html>
