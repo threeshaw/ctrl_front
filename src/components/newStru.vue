@@ -32,7 +32,7 @@
     <div class="leftCon">
       <div>
         <div @click="fun1">数据管理</div>
-        <li v-for="li1 in fileList" v-if="show1" @click="handleClick1($event, li1)">
+        <li v-for="(li1, index) in fileList" v-if="show1" @click="handleClick1($event, li1)">
           {{ li1 }}
         </li>
       </div>
@@ -68,6 +68,7 @@ const datas = ref()
 const fun1 = () => {
   show1.value = !show1.value
   fileList.value = datas.value.leftFileList
+  datas.value.renewChart()
   console.log(show1.value)
 }
 const fun2 = () => {

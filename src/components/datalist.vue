@@ -50,58 +50,61 @@
           <button class="secondary" @click="delChosen">- 删除选择</button>
         </div>
 
-        <!-- <div
-          v-for="(file, index) in files"
-          :key="index"
-          class="file-item"
-          :class="{ active: activeFileIndex === index }"
-          @dblclick="loadFile(index)"
-          @click="chosen(index)"
-          :style="{ backgroundColor: index == choice ? currentColor : 'rgb(30, 40, 80, 0.6)' }"
-        >
-          <h3>
-            {{ file.name }}
-            <span class="edit-icon" @click.stop="editFile(index)">✎</span>
-          </h3>
-          <p>{{ file.description }}</p>
-          <div class="file-meta">
-            <span>数据点: {{ file.data.length }}</span>
-            <span>更新于: {{ file.updated }}</span>
-          </div>
-        </div> -->
-        <div>
-          <table>
-            <thead>
-              <tr>
-                <th>位置号</th>
-                <th>单位</th>
-                <th>属性</th>
-                <th>公式</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(row, rowIndex) in dataInChart"
-                :key="rowIndex"
-                @click="chosen(rowIndex)"
-                :style="background = currentColor"
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>description</th>
+              <th>data</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(item, index) in files"
+              :class="{ highlighted: highlightedId === item.name }"
+              @click="toggleHighlight(item.name, index)"
+              @dblclick="loadFile(index)"
+            >
+              <td>{{ item.name }}</td>
+              <td>{{ item.description }}</td>
+              <td>1</td>
+              <td>{{ item.updated }}</td>
+
               >
-                <td v-for="(value, colIndex) in row" :key="colIndex">{{ value }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p v-if="files.length === 0" style="color: #90a4ae; text-align: center; margin-top: 20px">
-          暂无数据集，请点击"新建文件"按钮添加
-        </p>
+            </tr>
+          </tbody>
+        </table>
+        <!-- <table>
+          <thead>
+            <tr>
+              <th>位置号</th>
+              <th>单位</th>
+              <th>属性</th>
+              <th>公式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(row, rowIndex) in dataInChart"
+              :key="rowIndex"
+              @click="chosen(rowIndex)"
+              :style="choice == rowIndex ? { blue: 'yellow' } : {}"
+            >
+              <td v-for="(value, colIndex) in row" :key="colIndex">{{ value }}</td>
+            </tr>
+          </tbody>
+        </table> -->
       </div>
+      <p v-if="files.length === 0" style="color: #90a4ae; text-align: center; margin-top: 20px">
+        暂无数据集，请点击"新建文件"按钮添加
+      </p>
 
       <div class="visualization-area">
         <div class="canvas-container">
           <canvas ref="canvas" width="800" height="600"></canvas>
           <div v-if="!currentData.length" class="no-data">
             <p>请双击左侧文件加载数据</p>
-            <p>或使用"生成随机数据"按钮</p>
           </div>
         </div>
 
@@ -176,9 +179,31 @@ const currentData = ref([])
 const showModal = ref(false)
 const modalTitle = ref('新建数据集')
 const editingIndex = ref(-1)
+let choice = ref(null)
+const highlightedId = ref(null)
+
+// 切换高亮状态
+const toggleHighlight = (name, index) => {
+  if (highlightedId.value == name) {
+    // 如果点击的是已高亮的行，则取消高亮
+    highlightedId.value = null
+  } else {
+    // 否则高亮新行
+    highlightedId.value = name
+  }
+  console.log(highlightedId.value)
+  renewChart()
+  choice.value = index
+}
+
+// 获取状态文本
+
+// 获取高亮产品的名称
 
 const renewChart = () => {
-  console.log('100')
+  leftFileList.value = []
+  dataInChart.value = []
+
   for (let i = 0; i < files.value.length; i = i + 1) {
     dataInChart.value.push([
       files.value[i].name,
@@ -220,20 +245,6 @@ const openNewFileModal = () => {
   editingIndex.value = -1
   showModal.value = true
   console.log('star')
-}
-
-// 编辑文件
-const editFile = (index) => {
-  const file = files.value[index]
-  newFile.value = {
-    name: file.name,
-    description: file.description,
-    file: null,
-    data: [...file.data],
-  }
-  modalTitle.value = '编辑数据集'
-  editingIndex.value = index
-  showModal.value = true
 }
 
 // 关闭模态框
@@ -340,27 +351,13 @@ const addNewFile = () => {
   renewChart()
 }
 //删除文件
-
-const twoStyle = ['rgb(30, 40, 80, 0.6)', 'yellow']
-let currentColor = ref(twoStyle[0])
-let currentColorCho = 0
-let choice = ref(null)
 // 加载文件数据
 const loadFile = (index) => {
   activeFileIndex.value = index
   currentData.value = [...files.value[index].data]
   drawScatterPlot()
 }
-const chosen = (index) => {
-  console.log(index)
-  choice.value = index
-  if (currentColorCho == 0) {
-    currentColorCho = 1
-  } else {
-    currentColorCho = 0
-  }
-  currentColor.value = twoStyle[currentColorCho]
-}
+
 const delChosen = () => {
   console.log(choice.value)
   files.value.splice(choice.value, 1)
@@ -369,7 +366,6 @@ const delChosen = () => {
 // 绘制散点图
 const drawScatterPlot = () => {
   if (!ctx.value || !currentData.value.length) return
-
   const canvasEl = canvas.value
   ctx.value.clearRect(0, 0, canvasEl.width, canvasEl.height)
 
@@ -418,20 +414,40 @@ const drawScatterPlot = () => {
     ctx.value.stroke()
   }
 
+  // 绘制折线（核心修改）
+  ctx.value.beginPath()
+  ctx.value.strokeStyle = '#FF5722'
+  ctx.value.lineWidth = 3
+  ctx.value.lineCap = 'round'
+  ctx.value.lineJoin = 'round'
+
+  currentData.value.forEach((point, index) => {
+    const x = padding + (point[0] - xMin) * scaleX
+    const y = height - padding - (point[1] - yMin) * scaleY
+
+    if (index === 0) {
+      ctx.value.moveTo(x, y)
+    } else {
+      ctx.value.lineTo(x, y)
+    }
+  })
+
+  ctx.value.stroke()
+
   // 绘制点
   ctx.value.fillStyle = '#FF5722'
-  for (const point of currentData.value) {
+  currentData.value.forEach((point) => {
     const x = padding + (point[0] - xMin) * scaleX
     const y = height - padding - (point[1] - yMin) * scaleY
 
     ctx.value.beginPath()
     ctx.value.arc(x, y, 5, 0, Math.PI * 2)
     ctx.value.fill()
-  }
+  })
 
   // 绘制标题
-  ctx.value.fillStyle = '#ffffff'
-  ctx.value.font = '16px Arial'
+  ctx.value.fillStyle = '#2c3e50'
+  ctx.value.font = 'bold 18px Arial'
   ctx.value.textAlign = 'center'
   ctx.value.fillText(activeFileName.value, width / 2, 30)
 
@@ -493,6 +509,8 @@ onMounted(() => {
 defineExpose({
   triggerFileInput,
   openNewFileModal,
+  renewChart,
+  loadFile,
   files,
   leftFileList,
 })
@@ -857,14 +875,50 @@ button.secondary {
   white-space: nowrap;
 }
 
-@media (max-width: 900px) {
-  .main-content {
-    flex-direction: column;
-  }
+table {
+  border-collapse: collapse;
+}
 
-  .file-list {
-    width: 100%;
-    max-height: 200px;
-  }
+thead {
+  background: linear-gradient(90deg, #2c3e50, #34495e);
+  color: white;
+}
+
+th {
+  padding: 16px 15px;
+  text-align: left;
+  font-weight: 600;
+  position: relative;
+}
+
+th:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+th:last-child:after {
+  display: none;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background-color: #f5f7ff !important;
+}
+
+tbody tr.highlighted {
+  background-color: #ffeb3b !important;
+  font-weight: 600;
+  animation: highlight-fade 1.5s ease;
 }
 </style>
